@@ -32,8 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="IpBox">
-      <HintPath>..\..\..\..\..\Desktop\release\IpBox.dll</HintPath>
+    <Reference Include="IpBox, Version=1.0.1949.30141, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Reference\IpBox.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
