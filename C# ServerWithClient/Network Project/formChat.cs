@@ -50,7 +50,7 @@ namespace Network_Project
 			public Thread receiveThread;
 			public Thread questionThread;
 			public Thread thread;
-			public int portNum;
+			public string names;
 		}
 		structQuestion stQuestion;
 		structClientMode stClient;
@@ -81,23 +81,9 @@ namespace Network_Project
 		{
 			chatBox.Items.Add(text + "\r\n");
 			chatBox.TopIndex = chatBox.Items.Count - 1;
+
 		}
 
-		/*private void StartClient()
-		{
-			stClient.thread = new Thread(new ThreadStart(StartClient));
-			stClient.thread.Start();
-		}*/
-
-
-		/*private void ConnectForDelegate(IPAddress ip, int port)
-		{
-			stClient.client.Connect(ip, port);
-		}
-		public void SetStreamForDelegate()
-		{
-			stClient.stream = stClient.client.GetStream();
-		}*/
 		private void StartClient()
 		{
 			try
@@ -130,27 +116,6 @@ namespace Network_Project
 			}
 		}
 
-
-		/*private void ConnectToServer()
-		{
-			try
-			{
-				stClient.client = new TcpClient();
-				PrintToChatBox("port번호 획득.. " + stClient.destIp + ":" + stClient.portNum + " 접속 시도...");
-				stClient.client.Connect(stClient.destIp, stClient.portNum);
-				stClient.stream = stClient.client.GetStream();
-				stClient.reader = new StreamReader(stClient.stream);
-				stClient.writer = new StreamWriter(stClient.stream);
-				PrintToChatBox("Question Server 접속 완료");
-				stClient.receiveThread = new Thread(new ThreadStart(ReceiveForClient));
-				stClient.receiveThread.Start();
-			}
-			catch(Exception e)
-			{
-
-			}
-		}*/
-
 		private void SendQuestion()
 		{
 			while (true)
@@ -168,7 +133,7 @@ namespace Network_Project
 
 		private void FormChat_Load(object sender, EventArgs e)
 		{
-			clientDict = new Dictionary<int,ClientSet>();
+			clientDict = new Dictionary<int, ClientSet>();
 			myIp = startForm.txtIp.Text;
 			hostMode = startForm.radioHost.Checked;
 			if (hostMode)
@@ -215,6 +180,20 @@ namespace Network_Project
 					stClient.receiveThread.Abort();
 				if (stClient.questionThread != null)
 					stClient.questionThread.Abort();
+				if (stClient.thread != null)
+					stClient.thread.Abort();
+				if (stQuestion.Reader != null)
+					stQuestion.Reader.Close();
+				if (stQuestion.Writer != null)
+					stQuestion.Writer.Close();
+				if (stQuestion.Server != null)
+					stQuestion.Server.Stop();
+				if (stQuestion.Client != null)
+					stQuestion.Client.Close();
+				if (stQuestion.ReceiveThread != null)
+					stQuestion.ReceiveThread.Abort();
+				if (stQuestion.Thread != null)
+					stQuestion.Thread.Abort();
 
 				foreach (KeyValuePair<int, ClientSet> i in clientDict)
 				{
@@ -240,9 +219,20 @@ namespace Network_Project
 		//모든 클라에 메시지 전송
 		public void BroadCastMsg(string message)
 		{
+			string names = "";
+			ArrayList removeList = new ArrayList();
 			foreach (KeyValuePair<int, ClientSet> i in clientDict)
 			{
-				i.Value.SendMsg(message);
+				if (i.Value.connected)
+					names += i.Value.name + "ㅫ";
+				else
+					removeList.Add(i.Key);
+			}
+			foreach (int i in removeList)
+				clientDict.Remove(i);
+			foreach (KeyValuePair<int, ClientSet> i in clientDict)
+			{
+				i.Value.SendMsg(names + "ㅩ" + message);
 			}
 		}
 
@@ -280,9 +270,8 @@ namespace Network_Project
 				while (true)
 				{
 					stQuestion.Client = stQuestion.Server.AcceptTcpClient();
-					/*stQuestion.Connected = true;*/
 					Invoke(AddLog, "new client");
-					Invoke(addNewClient,lastID++,stQuestion.Client.GetStream());
+					Invoke(addNewClient, lastID++, stQuestion.Client.GetStream());
 				}
 
 			}
@@ -293,14 +282,23 @@ namespace Network_Project
 
 		private void AddNewClient(int clientID, NetworkStream stream)
 		{
-			clientDict.Add(clientID, new ClientSet(this,stream));
+			clientDict.Add(clientID, new ClientSet(this, stream));
 			clientDict[clientID].StartReceive();
 		}
 
+		private void RefreshNames(string names)
+		{
+			usersBox.Items.Clear();
+			foreach (string i in names.Split('ㅫ'))
+				if(i.Length>0)
+					usersBox.Items.Add(i);
+		}
+		private delegate void delRefresh(string names);
 		private void ReceiveForClient()
 		{
 			try
 			{
+				delRefresh refreshNames = new delRefresh(RefreshNames);
 				AddTextDelegate AddText = new AddTextDelegate(PrintToChatBox);
 
 				while (stClient.client.Connected)
@@ -309,11 +307,19 @@ namespace Network_Project
 
 					if (stClient.stream.CanRead == true)
 					{
-						string tmpStr = stClient.reader.ReadLine();
-
-						if (tmpStr.Length > 0)
+						string[] tmpStr = new string[3];
+						tmpStr[0] = stClient.reader.ReadLine();
+						tmpStr = tmpStr[0].Split('ㅩ');
+						Invoke(refreshNames, tmpStr[0]);
+						if (tmpStr[1].Contains('ㅴ'))
 						{
-							Invoke(AddText, tmpStr);
+							tmpStr = tmpStr[1].Split('ㅴ');
+							Invoke(AddText, tmpStr[0] + "님께서 입장하셨습니다.");
+							//tmpStr[0] = tmpStr[1];
+						}
+						if (tmpStr[1].Length > 0)
+						{
+							Invoke(AddText, tmpStr[1]);
 						}
 					}
 				}

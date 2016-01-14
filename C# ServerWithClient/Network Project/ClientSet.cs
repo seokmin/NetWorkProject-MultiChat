@@ -12,13 +12,15 @@ namespace Network_Project
 	class ClientSet
 	{
 		private delegate void AddTextDelegate(string text);
-		private bool connected = false;
+		public bool connected = false;
 		private int port;
 		private NetworkStream stream;
 		private StreamReader reader;
 		private StreamWriter writer;
 		private FormChat parent;
 		private Thread receiveThread;
+		public string name = "";
+		bool first = true;
 
 		public ClientSet(FormChat parent, NetworkStream stream)
 		{
@@ -27,15 +29,27 @@ namespace Network_Project
 			writer = new StreamWriter(stream);
 			reader = new StreamReader(stream);
 			receiveThread = new Thread(new ThreadStart(Receive));
+			connected = true;
 		}
 
 		public void CloseAll()
 		{
+			connected = false;
 			if (reader != null)
+			{
 				reader.Close();
+				reader = null;
+			}
 			if (writer != null)
+			{
 				writer.Close();
-			
+				writer = null;
+			}
+			if (stream != null)
+			{
+				stream.Close();
+				stream = null;
+			}
 			if (receiveThread != null)
 				receiveThread.Abort();
 		}
@@ -57,7 +71,7 @@ namespace Network_Project
 			try
 			{
 				delBroadCastMsg broadCast = new delBroadCastMsg(parent.BroadCastMsg);
-				while (/*connected == */true)
+				while (connected == true)
 				{
 					Thread.Sleep(1);
 
@@ -65,17 +79,22 @@ namespace Network_Project
 					{
 						string tmpStr = reader.ReadLine();
 
+						if (first)
+						{
+							name = tmpStr.Split('>')[0];
+							first = false;
+							tmpStr = name + "ㅴ" + tmpStr;
+						}
 						if (tmpStr.Length > 0)
 						{
-							//parent.BroadCastMsg(tmpStr);
 							broadCast.BeginInvoke(tmpStr,null,null);
-							//Invoke(broadCast,tmpStr);
 						}
 					}
 				}
 			}
 			catch (Exception e)
 			{
+				CloseAll();
 			}
 		}
 	}
