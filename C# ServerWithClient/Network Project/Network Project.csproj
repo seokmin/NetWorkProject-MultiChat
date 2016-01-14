@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientSet.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FormStart.cs">
       <SubType>Form</SubType>

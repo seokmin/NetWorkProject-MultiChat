@@ -33,6 +33,8 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.usersBox = new System.Windows.Forms.ListBox();
 			this.inputBox = new System.Windows.Forms.TextBox();
+			this.serverLog = new System.Windows.Forms.ListBox();
+			this.label2 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// chatBox
@@ -80,11 +82,31 @@
 			this.inputBox.Size = new System.Drawing.Size(262, 21);
 			this.inputBox.TabIndex = 1;
 			// 
+			// serverLog
+			// 
+			this.serverLog.FormattingEnabled = true;
+			this.serverLog.ItemHeight = 12;
+			this.serverLog.Location = new System.Drawing.Point(369, 278);
+			this.serverLog.Name = "serverLog";
+			this.serverLog.Size = new System.Drawing.Size(96, 184);
+			this.serverLog.TabIndex = 5;
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(367, 263);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(66, 12);
+			this.label2.TabIndex = 6;
+			this.label2.Text = "Server Log";
+			// 
 			// FormChat
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(477, 474);
+			this.Controls.Add(this.label2);
+			this.Controls.Add(this.serverLog);
 			this.Controls.Add(this.usersBox);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.btnSend);
@@ -109,5 +131,7 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.ListBox usersBox;
 		private System.Windows.Forms.TextBox inputBox;
+		private System.Windows.Forms.ListBox serverLog;
+		private System.Windows.Forms.Label label2;
 	}
 }

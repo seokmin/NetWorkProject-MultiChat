@@ -50,6 +50,7 @@ namespace Network_Project
 
 			//자신ip 출력
 			lbIpAdress.Text = My_IP;
+			txtIp.Text = My_IP;
 		}
 
 		private void btnCopyIP_Click(object sender, EventArgs e)
