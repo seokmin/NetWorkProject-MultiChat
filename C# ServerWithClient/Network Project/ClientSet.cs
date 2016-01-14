@@ -56,7 +56,7 @@ namespace Network_Project
 
 		public void SendMsg(string msg)
 		{
-			writer.WriteLine(msg);
+			writer.WriteLine(msg.Crypt());
 			writer.Flush();
 		}
 
@@ -77,7 +77,7 @@ namespace Network_Project
 
 					if (stream.CanRead == true)
 					{
-						string tmpStr = reader.ReadLine();
+						string tmpStr = reader.ReadLine().Decrypt();
 
 						if (first)
 						{

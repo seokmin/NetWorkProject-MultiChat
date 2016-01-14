@@ -12,6 +12,7 @@ using System.Net.Sockets;
 using System.IO;
 using System.Threading;
 using System.Collections;
+using System.Security.Cryptography;
 
 namespace Network_Project
 {
@@ -121,7 +122,7 @@ namespace Network_Project
 			while (true)
 			{
 				Thread.Sleep(1);
-				stClient.writer.WriteLine("|||" + myIp);
+				stClient.writer.WriteLine(("|||" + myIp).Crypt());
 				stClient.writer.Flush();
 			}
 		}
@@ -210,7 +211,7 @@ namespace Network_Project
 		{
 			if (stClient.client.Connected)
 			{
-				stClient.writer.WriteLine(stClient.name + ">>" + inputBox.Text);
+				stClient.writer.WriteLine((stClient.name + ">>" + inputBox.Text).Crypt());
 				stClient.writer.Flush();
 			}
 			inputBox.Clear();
@@ -308,7 +309,7 @@ namespace Network_Project
 					if (stClient.stream.CanRead == true)
 					{
 						string[] tmpStr = new string[3];
-						tmpStr[0] = stClient.reader.ReadLine();
+						tmpStr[0] = stClient.reader.ReadLine().Decrypt();
 						tmpStr = tmpStr[0].Split('ㅩ');
 						Invoke(refreshNames, tmpStr[0]);
 						if (tmpStr[1].Contains('ㅴ'))

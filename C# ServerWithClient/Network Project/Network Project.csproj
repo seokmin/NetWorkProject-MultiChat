@@ -38,6 +38,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -50,6 +51,7 @@
   <ItemGroup>
     <Compile Include="ClientSet.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Encrypter.cs" />
     <Compile Include="FormStart.cs">
       <SubType>Form</SubType>
     </Compile>
