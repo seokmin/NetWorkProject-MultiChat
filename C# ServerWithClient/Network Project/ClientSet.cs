@@ -14,21 +14,19 @@ namespace Network_Project
 		private delegate void AddTextDelegate(string text);
 		private bool connected = false;
 		private int port;
-		private TcpListener server;
-		private TcpClient client;
 		private NetworkStream stream;
 		private StreamReader reader;
 		private StreamWriter writer;
 		private FormChat parent;
-		private Thread listenThread;
 		private Thread receiveThread;
 
-		public ClientSet(FormChat callingForm, int portNum)
+		public ClientSet(FormChat parent, NetworkStream stream)
 		{
-			this.parent = callingForm;
-			this.port = portNum;
-
-			listenThread = new Thread(new ThreadStart(Listen));
+			this.parent = parent;
+			this.stream = stream;
+			writer = new StreamWriter(stream);
+			reader = new StreamReader(stream);
+			receiveThread = new Thread(new ThreadStart(Receive));
 		}
 
 		public void CloseAll()
@@ -37,51 +35,20 @@ namespace Network_Project
 				reader.Close();
 			if (writer != null)
 				writer.Close();
-			if (server != null)
-				server.Stop();
-			if (client != null)
-				client.Close();
+			
 			if (receiveThread != null)
 				receiveThread.Abort();
 		}
 
 		public void SendMsg(string msg)
 		{
-			writer.Write(msg);
+			writer.WriteLine(msg);
+			writer.Flush();
 		}
 
-		public void StartListen()
+		public void StartReceive()
 		{
-			listenThread.Start();
-		}
-
-		private void Listen()
-		{
-			try
-			{
-				IPAddress ip = new IPAddress(0);
-
-				server = new TcpListener(ip, port);
-
-				server.Start();
-
-
-				client = server.AcceptTcpClient();
-				connected = true;
-
-				//클라 연결 성공시 셋팅 부분
-				stream = client.GetStream();
-				reader = new StreamReader(stream);
-				writer = new StreamWriter(stream);
-
-				//값 받아오기
-				receiveThread = new Thread(new ThreadStart(Receive));
-				receiveThread.Start();
-			}
-			catch (Exception e)
-			{ 
-			
-			}
+			receiveThread.Start();
 		}
 
 		private delegate void delBroadCastMsg(string str);
@@ -90,7 +57,7 @@ namespace Network_Project
 			try
 			{
 				delBroadCastMsg broadCast = new delBroadCastMsg(parent.BroadCastMsg);
-				while (connected == true)
+				while (/*connected == */true)
 				{
 					Thread.Sleep(1);
 

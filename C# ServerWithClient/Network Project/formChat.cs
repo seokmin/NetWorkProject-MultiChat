@@ -60,8 +60,8 @@ namespace Network_Project
 
 		bool hostMode;
 
-		int questionPort = 9282;
-		int nextPort = 9283;
+		int lastID = 0;
+		int defaultPort = 9282;
 		string myIp;
 
 		private FormStart startForm = null;
@@ -90,14 +90,14 @@ namespace Network_Project
 		}*/
 
 
-		private void ConnectForDelegate(IPAddress ip, int port)
+		/*private void ConnectForDelegate(IPAddress ip, int port)
 		{
 			stClient.client.Connect(ip, port);
 		}
 		public void SetStreamForDelegate()
 		{
 			stClient.stream = stClient.client.GetStream();
-		}
+		}*/
 		private void StartClient()
 		{
 			try
@@ -111,27 +111,16 @@ namespace Network_Project
 
 				//question server 접속 시도
 				PrintToChatBox(stClient.destIp + " Question Server 접속 시도..");
-				stClient.client.Connect(stClient.destIp, questionPort);
+				stClient.client.Connect(stClient.destIp, defaultPort);
 				/*stClient.stream = stClient.client.GetStream();*/
 				stClient.stream = stClient.client.GetStream();
-				PrintToChatBox("Question Server 접속 완료.. 가용 port 문의 시도..");
+				PrintToChatBox("Question Server 접속 완료..");
 
 				stClient.reader = new StreamReader(stClient.stream);
 				stClient.writer = new StreamWriter(stClient.stream);
-				//일단 Question부터 날린다.
 
-				stClient.questionThread = new Thread(new ThreadStart(RequestAnswer));
-				stClient.questionThread.Start();
-				//stClient.receiveThread.Join();
-
-				//받은 포트번호로 접속 시도/*
-				/*
-								PrintToChatBox("port번호 획득.. " + stClient.destIp + ":" + stClient.portNum + " 접속 시도...");
-								stClient.client.Connect(stClient.destIp, stClient.portNum);
-								stClient.stream = stClient.client.GetStream();
-								PrintToChatBox("Question Server 접속 완료");
-								stClient.receiveThread = new Thread(new ThreadStart(ReceiveForClient));
-								stClient.receiveThread.Start();* /*/
+				stClient.thread = new Thread(new ThreadStart(ReceiveForClient));
+				stClient.thread.Start();
 
 			}
 			catch (Exception e)
@@ -142,7 +131,7 @@ namespace Network_Project
 		}
 
 
-		private void ConnectToServer()
+		/*private void ConnectToServer()
 		{
 			try
 			{
@@ -160,44 +149,7 @@ namespace Network_Project
 			{
 
 			}
-		}
-
-		private delegate void delConnectToServer();
-		private void RequestAnswer()
-		{
-			try
-			{
-				delConnectToServer connectToServer = new delConnectToServer(ConnectToServer);
-
-				stClient.writer.WriteLine("|||" + myIp);
-				stClient.writer.Flush();
-				while (stClient.client.Connected == true)
-				{
-					/*Thread sendQuestionThread = new Thread(new ThreadStart(SendQuestion));
-					sendQuestionThread.Start();*/
-
-					if (stClient.stream.CanRead == true)
-					{
-						Thread.Sleep(1);
-						string tmpStr = stClient.reader.ReadLine();
-
-						if (tmpStr.Length > 0)
-						{
-							Int32.TryParse(tmpStr, out stClient.portNum);
-							/*sendQuestionThread.Abort();*/
-							stClient.client.Close();
-							Invoke(connectToServer);
-							stClient.questionThread.Abort();
-						}
-					}/*
-					stClient.writer.WriteLine("|||" + myIp);
-					stClient.writer.Flush();*/
-				}
-			}
-			catch (Exception e)
-			{ 
-			}
-		}
+		}*/
 
 		private void SendQuestion()
 		{
@@ -306,15 +258,17 @@ namespace Network_Project
 			SendMsgToServer();
 		}
 
+		private delegate void delAddNewClient(int id, NetworkStream stream);
 		private void QuestionServer()
 		{
 			try
 			{
 				AddTextDelegate AddText = new AddTextDelegate(PrintToChatBox);
 				AddLogDelegate AddLog = new AddLogDelegate(PrintLog);
+				delAddNewClient addNewClient = new delAddNewClient(AddNewClient);
 
 				IPAddress ip = new IPAddress(0);
-				int port = questionPort;
+				int port = defaultPort;
 
 				stQuestion.Server = new TcpListener(ip, port);
 
@@ -327,62 +281,20 @@ namespace Network_Project
 				{
 					stQuestion.Client = stQuestion.Server.AcceptTcpClient();
 					/*stQuestion.Connected = true;*/
-					Invoke(AddLog, "new client question");
-
-					//클라 연결 성공시 셋팅 부분
-					stQuestion.Stream = stQuestion.Client.GetStream();
-					stQuestion.Reader = new StreamReader(stQuestion.Stream);
-					stQuestion.Writer = new StreamWriter(stQuestion.Stream);
-
-					//값 받아오기
-					stQuestion.ReceiveThread = new Thread(new ThreadStart(ReceiveQuestion));
-					stQuestion.ReceiveThread.Start();
-					stQuestion.ReceiveThread.Join();
+					Invoke(AddLog, "new client");
+					Invoke(addNewClient,lastID++,stQuestion.Client.GetStream());
 				}
 
 			}
 			catch (Exception e)
-			{ }
+			{
+			}
 		}
 
-		private void AddNewClient(int portNum)
+		private void AddNewClient(int clientID, NetworkStream stream)
 		{
-			clientDict.Add(portNum, new ClientSet(this, portNum));
-			clientDict[portNum].StartListen();
-		}
-		private delegate void delAddNewClient(int portNum);
-		private void ReceiveQuestion()
-		{
-			try
-			{
-				delAddNewClient addNewClient = new delAddNewClient(AddNewClient);
-
-				while (stQuestion.Client.Connected == true)
-				{
-					Thread.Sleep(1);
-
-					if (stQuestion.Stream.CanRead == true)
-					{
-						string tmpStr = stQuestion.Reader.ReadLine();
-
-						if (tmpStr.Substring(0, 3) == "|||")
-						{
-							Invoke(addNewClient,nextPort);
-							stQuestion.Writer.WriteLine(nextPort);
-							stQuestion.Writer.Flush();
-							++nextPort;
-							stQuestion.Client.Close();
-							/*stQuestion.Connected = false;*/
-							stQuestion.ReceiveThread.Abort();
-						}
-
-					}
-				}
-			}
-			catch (Exception e)
-			{
- 
-			}
+			clientDict.Add(clientID, new ClientSet(this,stream));
+			clientDict[clientID].StartReceive();
 		}
 
 		private void ReceiveForClient()
