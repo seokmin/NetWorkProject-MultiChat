@@ -151,7 +151,9 @@ namespace Network_Project
 
 			startForm.btnStart.Enabled = false;
 			startForm.txtName.Enabled = false;
-
+            startForm.radioClient.Enabled = false;
+            startForm.radioHost.Enabled = false;
+            startForm.ipBox.Enabled = false;
 
 			inputBox.Select();
 
@@ -168,6 +170,9 @@ namespace Network_Project
 			{
 				startForm.btnStart.Enabled = true;
 				startForm.txtName.Enabled = true;
+                startForm.radioHost.Enabled = true;
+                startForm.radioClient.Enabled = true;
+                startForm.ipBox.Enabled = startForm.radioClient.Checked;
 
 				if (stClient.reader != null)
 					stClient.reader.Close();
