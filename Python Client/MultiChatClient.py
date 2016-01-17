@@ -5,6 +5,7 @@ from select import select
 import pyDes
 import base64
 import sys
+#from Crypto.Cipher import DES
 
 port = 9282
 BUFSIZE = 1024
@@ -55,7 +56,9 @@ nick = raw_input('이름을 입력해 주세요 : ')
 
 client = socket(AF_INET, SOCK_STREAM)
 
-des = DES('12345678','12345678')
+iv = base64.b16decode('1122334455667788')
+key = iv
+des = DES(iv,key)
 
 while True:
     hostIP =raw_input("호스트의 IP주소를 입력하세요. (ex|127.0.0.1) : ")
@@ -73,7 +76,10 @@ def refreshNames(names):
 
 def printOut(msg):
     msg = des.decrypt(msg)
-    msg = msg.split('ㅩ')
+    msg = msg.decode("cp949")
+    ##msg = unicode(msg)
+    msg = msg.split('ㅩ'.decode('cp949'))
+    print msg
     refreshNames(msg[0])
     if 'ㅴ' in msg[1]:
         msg = msg[1].split('ㅴ')
@@ -85,7 +91,6 @@ def printOut(msg):
 
 
 def prompt():
-    sys.stdout.write('%s : ' %nick)
     sys.stdout.flush()
 
 
@@ -110,6 +115,8 @@ while True:
                 message = sys.stdin.readline()
                 message = nick + '>>' + message
                 message = des.encrypt(message)
+                #message = 'a'
+                print ('send : %s' %message)
                 client.sendall(message)
                 prompt()
 

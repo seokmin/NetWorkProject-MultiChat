@@ -62,7 +62,8 @@ while True:
                     clientSocket.close()
                     sys.exit()
                 else:
-                    print('%s' % des.decrypt(data))  # 메세지 시간은 서버 시간을 따른다
+                    #print('%s' %des.decrypt(data))  # 메세지 시간은 서버 시간을 따른다
+                    print('%s' %data)  # 메세지 시간은 서버 시간을 따른다
                     prompt()
             else:
                 message = sys.stdin.readline()
