@@ -26,7 +26,7 @@ des = DES('12345678','12345678')
 
 
 # 호스트, 포트와 버퍼 사이즈를 지정
-HOST = '192.168.25.22'
+HOST = raw_input()
 PORT = 9282
 BUFSIZE = 1024
 ADDR = (HOST, PORT)
